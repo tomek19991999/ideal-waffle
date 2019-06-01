@@ -215,7 +215,7 @@ int wyszukaj(biblioteka* baza, int ostatni){
 for (int j=1; j <= ostatni; j++){
             if (!strcmp(baza[j-1].marka, slowo) || !strcmp(baza[j-1].model, slowo) || !strcmp(baza[j-1].rejestracja, slowo)){
               printf("%d %9s %9s %s %9dzl %9dkm %9s      %9s\n", baza[j-1].nr, baza[j-1].marka, baza[j-1].model, baza[j-1].rejestracja, baza[j-1].cena, baza[j-1].przebieg, baza[j-1].przeglad, baza[j-1].uszkodzone);
-              j++;
+              
 }
 }
 
