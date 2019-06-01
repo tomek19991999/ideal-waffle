@@ -17,8 +17,8 @@ struct biblioteka{
 };
 typedef struct biblioteka biblioteka;
 
-unsigned char* wczytajzplik(char argv[], int* dlugosc);
-int wczytajrekordy(unsigned char* bufor,biblioteka* baza ,int len, int nr);
+unsigned char* wczytywanie_buforaFUNKCJAPOMOCNICZA( int* dlugosc);
+int wczytaj(unsigned char* bufor,biblioteka* baza ,int len, int nr);
 int strdoint(char* slowo);
 void zapisz(char nazwa[], biblioteka* baza, int ostatni);
 int dodajrekord(biblioteka* baza, int numer);
@@ -35,22 +35,23 @@ int main(int argc, char** argv)
     char nazwa_pliku[] = "bazadanych.txt";//Tutaj jest nazwa pliku z danymi
 
     int a;
-    bufor = wczytajzplik(nazwa_pliku, &a);//a to dlugosc tekstu w bajtach
+    bufor = wczytywanie_buforaFUNKCJAPOMOCNICZA(&a);//a to dlugosc tekstu w bajtach
      if(bufor != NULL){ //wczytanie domyslnej bazy danych
-        ilosc_motocykli = wczytajrekordy(bufor, baza, a, 1);
+        ilosc_motocykli = wczytaj(bufor, baza, a, 1);
     }
 
-   wczytajkonsola("Podaj nazwe pliku wraz z rozszerzeniem (np. 'a.txt')\n", tablica_znakow);
+   //wczytajkonsola("Podaj nazwe pliku wraz z rozszerzeniem (np. 'a.txt')\n", tablica_znakow);
 
 
-   dodajrekord(baza,ilosc_motocykli);
-    printf("to oddaje funkcja dodawania");
+  // dodajrekord(baza,ilosc_motocykli);
+  //  printf("to oddaje funkcja dodawania");
 
 
-    int test=ilosc_motocykli;
-    printf("Dodany rekord: %d %9s %9s %9s %9dzl %9dkm %9s %9s\n", baza[test].nr, baza[test].marka, baza[test].model, baza[test].rejestracja, baza[test].cena, baza[test].przebieg, baza[test].przeglad, baza[test].uszkodzone);
+    int test=0;
+    for(test;test<ilosc_motocykli;test++){
+    printf("Dodany rekord: %d %9s %9s %9s %9dzl %9dkm %9s %9s\n", baza[test].nr, baza[test].marka, baza[test].model, baza[test].rejestracja, baza[test].cena, baza[test].przebieg, baza[test].przeglad, baza[test].uszkodzone);}
 
-    zapisz(nazwa_pliku,baza,ilosc_motocykli);
+ //   zapisz(nazwa_pliku,baza,ilosc_motocykli);
 
 	return 0;
 }
@@ -72,7 +73,7 @@ int strdoint(char* slowo){//NIEUZYWANE
 		return -1;
 }
 
-int wczytajrekordy(unsigned char* bufor,biblioteka* baza ,int len, int nr){
+int wczytaj(unsigned char* bufor,biblioteka* baza ,int len, int nr){
 
     char c;
     char slowo[100];
@@ -96,28 +97,20 @@ int wczytajrekordy(unsigned char* bufor,biblioteka* baza ,int len, int nr){
 
             slowo[j] = '\0';
             j = 0;
-                switch (i){
-                case 0:
-                    strcpy(baza[nr-1].marka, slowo);
-                    break;
-                case 1:
-                    strcpy(baza[nr-1].model, slowo);
-                    break;
-                case 2:
-                    strcpy(baza[nr-1].rejestracja, slowo);
-                    break;
-                case 3:
-                    sscanf(slowo,"%d",&baza[nr-1].cena);
-                    break;
-                case 4:
-                    sscanf(slowo,"%d",&baza[nr-1].przebieg);
-                    break;
-                case 5:
-                    strcpy(baza[nr-1].przeglad, slowo);
-                    break;
 
+                if(i=0){
+                    strcpy(baza[nr-1].marka, slowo);}
+                   if(i=1){
+                    strcpy(baza[nr-1].model, slowo);}
+                    if(i=2){
+                    strcpy(baza[nr-1].rejestracja, slowo);}
+                    if(i=3){
+                    sscanf(slowo,"%d",&baza[nr-1].cena);}
+                   if(i=4){
+                    sscanf(slowo,"%d",&baza[nr-1].przebieg);}
+                    if(i=5){
+                    strcpy(baza[nr-1].przeglad, slowo);}
 
-                }
 
             i++;
         }
@@ -130,21 +123,21 @@ int wczytajrekordy(unsigned char* bufor,biblioteka* baza ,int len, int nr){
 
     int b=2;
     //printf("%d\n",baza[b].przebieg);
-    for (int a = 0; a <=6; a++){
+  //  for (int a = 0; a <=6; a++){
 
-            printf("Wczytana biblioteka: %d %9s %9s %9s %9dzl %9dkm %9s %9s\n", baza[a].nr, baza[a].marka, baza[a].model, baza[a].rejestracja, baza[a].cena, baza[a].przebieg, baza[a].przeglad, baza[a].uszkodzone);}
+    //        printf("Wczytana biblioteka: %d %9s %9s %9s %9dzl %9dkm %9s %9s\n", baza[a].nr, baza[a].marka, baza[a].model, baza[a].rejestracja, baza[a].cena, baza[a].przebieg, baza[a].przeglad, baza[a].uszkodzone);}
 
    // for (int a = 1; a <= 10; j++){
    //         printf("%5d %20s %20s", baza[j-1].nr, baza[j-1].marka, baza[j-1].kolor);}
     return nr-1;
 }
 
-unsigned char* wczytajzplik(char argv[], int* dlugosc){
+unsigned char* wczytywanie_buforaFUNKCJAPOMOCNICZA( int* dlugosc){
 
     int status;
 
     FILE * plik;
-    plik = fopen(argv, "rb");
+    plik = fopen("bazadanych.txt", "rb");
     if ( plik == NULL )
     {
         printf("Nie moge otworzyc pliku!\n");
@@ -182,6 +175,8 @@ unsigned char* wczytajzplik(char argv[], int* dlugosc){
     */
     return bufor;
 }
+
+/*
 
 int wczytajkonsola(char tekst[], char* miejsce){
     int j = 0;
@@ -352,4 +347,4 @@ void zapisz(char nazwa[], biblioteka* baza, int ostatni){
     fclose(plik);
 }
 
-
+*/
