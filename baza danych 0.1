@@ -97,20 +97,28 @@ int wczytaj(unsigned char* bufor,biblioteka* baza ,int len, int nr){
 
             slowo[j] = '\0';
             j = 0;
+                switch (i){
+                case 0:
+                    strcpy(baza[nr-1].marka, slowo);
+                    break;
+                case 1:
+                    strcpy(baza[nr-1].model, slowo);
+                    break;
+                case 2:
+                    strcpy(baza[nr-1].rejestracja, slowo);
+                    break;
+                case 3:
+                    sscanf(slowo,"%d",&baza[nr-1].cena);
+                    break;
+                case 4:
+                    sscanf(slowo,"%d",&baza[nr-1].przebieg);
+                    break;
+                case 5:
+                    strcpy(baza[nr-1].przeglad, slowo);
+                    break;
 
-                if(i=0){
-                    strcpy(baza[nr-1].marka, slowo);}
-                   if(i=1){
-                    strcpy(baza[nr-1].model, slowo);}
-                    if(i=2){
-                    strcpy(baza[nr-1].rejestracja, slowo);}
-                    if(i=3){
-                    sscanf(slowo,"%d",&baza[nr-1].cena);}
-                   if(i=4){
-                    sscanf(slowo,"%d",&baza[nr-1].przebieg);}
-                    if(i=5){
-                    strcpy(baza[nr-1].przeglad, slowo);}
 
+                }
 
             i++;
         }
@@ -175,6 +183,40 @@ unsigned char* wczytywanie_buforaFUNKCJAPOMOCNICZA( int* dlugosc){
     */
     return bufor;
 }
+
+int wyszukaj(biblioteka* baza, int ostatni){
+
+
+	printf("podaj Marke/model/rejestracje:\n" );
+
+
+        int a=0;
+        char b;
+        char slowo[100];
+
+    while((b=getchar())!='\n'){
+
+        slowo[a]=b;
+        a++;
+    }
+
+    printf("%s\n",slowo);
+
+    int j=0;
+
+
+
+for (j; j <= ostatni; j++){
+            if (!strcmp(baza[j].marka, slowo) || !strcmp(baza[j].model, slowo) || !strcmp(baza[j].rejestracja, slowo)){
+              printf("%d %9s %9s %s %9dzl %9dkm %9s      %9s\n", baza[j].nr, baza[j].marka, baza[j].model, baza[j].rejestracja, baza[j].cena, baza[j].przebieg, baza[j].przeglad, baza[j].uszkodzone);
+              j++;
+}
+}
+
+
+}
+
+
 
 /*
 
