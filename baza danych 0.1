@@ -23,6 +23,7 @@ int strdoint(char* slowo);
 void zapisz(char nazwa[], biblioteka* baza, int ostatni);
 int dodajrekord(biblioteka* baza, int numer);
 int wczytajkonsola(char tekst[], char* miejsce);
+int wyszukaj(biblioteka* baza, int ostatni);
 
 int main(int argc, char** argv)
 {
@@ -47,9 +48,12 @@ int main(int argc, char** argv)
   //  printf("to oddaje funkcja dodawania");
 
 
-    int test=0;
-    for(test;test<ilosc_motocykli;test++){
+
+
+    for(int test=0;test<ilosc_motocykli;test++){
     printf("Dodany rekord: %d %9s %9s %9s %9dzl %9dkm %9s %9s\n", baza[test].nr, baza[test].marka, baza[test].model, baza[test].rejestracja, baza[test].cena, baza[test].przebieg, baza[test].przeglad, baza[test].uszkodzone);}
+
+     wyszukaj(baza,ilosc_motocykli);
 
  //   zapisz(nazwa_pliku,baza,ilosc_motocykli);
 
@@ -200,193 +204,20 @@ int wyszukaj(biblioteka* baza, int ostatni){
         a++;
     }
 
+    slowo[a]='\0';
+
     printf("%s\n",slowo);
 
-    int j=0;
+    ;
 
 
 
-for (j; j <= ostatni; j++){
-            if (!strcmp(baza[j].marka, slowo) || !strcmp(baza[j].model, slowo) || !strcmp(baza[j].rejestracja, slowo)){
-              printf("%d %9s %9s %s %9dzl %9dkm %9s      %9s\n", baza[j].nr, baza[j].marka, baza[j].model, baza[j].rejestracja, baza[j].cena, baza[j].przebieg, baza[j].przeglad, baza[j].uszkodzone);
-              j++;
+for (int j=1; j <= ostatni; j++){
+            if (!strcmp(baza[j-1].marka, slowo) || !strcmp(baza[j-1].model, slowo) || !strcmp(baza[j-1].rejestracja, slowo)){
+              printf("%d %9s %9s %s %9dzl %9dkm %9s      %9s\n", baza[j-1].nr, baza[j-1].marka, baza[j-1].model, baza[j-1].rejestracja, baza[j-1].cena, baza[j-1].przebieg, baza[j-1].przeglad, baza[j-1].uszkodzone);
+              
 }
 }
 
 
 }
-
-
-
-/*
-
-int wczytajkonsola(char tekst[], char* miejsce){
-    int j = 0;
-    char c;
-
-
-    printf("Wpisz ',' aby przerwac\n\n");
-	printf("%s", tekst);
-
-	while((c = getchar()) != '\n' && c != EOF){
-        if (c == ',')
-            return 0;
-        else if (j >= 99){
-            system("cls");
-            printf("Blad! Przepelnienie bufora\n");
-            return -1;
-        }
-        miejsce[j] = c;  //Tutaj  sie rozpoczyna zasadnicze dzialanie funkcji
-        j++;
-	}
-	if (j != 0)
-        miejsce[j] = '\0';
-
-    return 1;
-}
-
-int dodajrekord(biblioteka* baza, int numer){
-	biblioteka nowauto;
-	int i = 0;
-	int j = 0;
-	char c;
-	//char bufor[100];
-
-	nowauto.nr = numer + 1;
-
-   // system("cls");
-    while (j != 1){
-        j = wczytajkonsola("Marka samochodu:\n", nowauto.marka);
-        if (j == -1){
-            //printf("Blad! Przepelnienie bufora.");
-            while((c = getchar()) != '\n' && c != EOF){}
-            continue;
-        }
-        else if (j == 0){
-            return 0;
-        }
-    }
-    j = 0;
-
-  //  system("cls");
-    while (j != 1){
-        j = wczytajkonsola("Model samochodu:\n", nowauto.model);
-        if (j == -1){
-            //printf("Blad! Przepelnienie bufora.");
-            while((c = getchar()) != '\n' && c != EOF){}
-            continue;
-        }
-        else if (j == 0){
-            return 0;
-        }
-    }
-    j = 0;
-
-  //  system("cls");
-    while (j != 1){
-        j = wczytajkonsola("rejestracja samochodu:\n", nowauto.rejestracja);
-        if (j == -1){
-            //printf("Blad! Przepelnienie bufora.");
-            while((c = getchar()) != '\n' && c != EOF){}
-            continue;
-        }
-        else if (j == 0){
-            return 0;
-        }
-    }
-    j = 0;
-
-   // system("cls");
-    while (j != 1){
-        j = wczytajkonsola("czy ma przeglad? (tak/nie) samochodu:\n", nowauto.przeglad);
-        if (j == -1){
-            //printf("Blad! Przepelnienie bufora.");
-            while((c = getchar()) != '\n' && c != EOF){}
-            continue;
-        }
-        else if (j == 0){
-            return 0;
-        }
-    }
-    j = 0;
-
-    while (j != 1){
-        j = wczytajkonsola("czy uszkodzone? (tak/nie):\n", nowauto.uszkodzone);
-        if (j == -1){
-            //printf("Blad! Przepelnienie bufora.");
-            while((c = getchar()) != '\n' && c != EOF){}
-            continue;
-        }
-        else if (j == 0){
-            return 0;
-        }
-    }
-    j = 0;
-
- //   system("cls");
-
- do{
-        printf("Wpisz ',' any przerwac\n\n");
-        printf("przebieg samochodu:\n");
-        i = scanf("%d", &nowauto.przebieg);
-      //  system("cls");
-        while ((c = getchar()) == ','){
-            return 0;
-        }
-        if (i <= 0){
-            printf("Blad! Podaj prawidlowa liczbe \n");
-            while((c = getchar()) != '\n' && c != EOF){}
-        }
-	}while(i <= 0);
-
-    double q;
-	do{
-        printf("Wpisz ',' any przerwac\n\n");
-        printf("cena samochodu:\n");
-        i = scanf("%d", &nowauto.cena);
-     //   system("cls");
-        while ((c = getchar()) == ','){
-            return 0;
-        }
-        if (i <= 0){
-            printf("Blad! Podaj prawidlowa liczbe \n");
-            while((c = getchar()) != '\n' && c != EOF){}
-        }
-	}while(i <= 0);
-
-	//system("cls");
-
-    *(baza + numer) = nowauto;
-
-
-    return 1;
-}
-
-
-void zapisz(char nazwa[], biblioteka* baza, int ostatni){
-    int i;
-    ostatni=ostatni+1;
-    FILE* plik;
-    plik = fopen(nazwa, "w");
-
-    for (i = 0; i < ostatni; i++){
-        fprintf(plik,"%s",baza[i].marka);
-        fprintf(plik, ",");
-        fprintf(plik,"%s", baza[i].model);
-        fprintf(plik, ",");
-        fprintf(plik,"%s", baza[i].rejestracja);
-        fprintf(plik, ",");
-        fprintf(plik,"%d", baza[i].cena);
-        fprintf(plik, ",");
-        fprintf(plik, "%d", baza[i].przebieg);
-        fprintf(plik, ",");
-        fprintf(plik, "%s", baza[i].przeglad);
-        fprintf(plik, ",");
-        fprintf(plik, "%s", baza[i].uszkodzone);
-        fprintf(plik, "\n");
-    }
-
-    fclose(plik);
-}
-
-*/
