@@ -8,6 +8,8 @@ void wczytywanie_wspolczynnikow(double tab_wspolczynniki[], int ilosc_wspolczynn
 void dziedzina(double* dziedzina_minimum, double* dziedzina_maksimum);
 void generatorSinus(double tab_wspolczynniki[], double dziedzina_minimum, double dziedzina_maksimum, double tab_wartosci[], int* ilosc, double* rozdzielczosc);
 void rozmiar_tablic(int* rozmiar_tablicy);
+void zapisz(double* tab_wartosci, double* tab_szum_wlasciwa, int* rozmiar_tablicy);
+void szum(double wyniki[], int rozmiar_tablicy, double wyniki_szumu[], double tab_szum_wlasciwa[]);
 
 void sawSignal(float tab_wspolczynniki[], float dziedzina_minimum, float dziedzina_maksimum, float tab_wartosci[], int* ilosc, float* rozdzielczosc) {
 	float coefficentA = tab_wspolczynniki[0];
@@ -38,63 +40,7 @@ void sawSignal(float tab_wspolczynniki[], float dziedzina_minimum, float dziedzi
 	*(tab_wartosci + i) = '\0';
 }
 
-void zapisz(double* tab_wartosci, double dziedzina_minimum, double dziedzina_maksimum, double* rozdzielczosc);
 
-void szum(double wyniki[], int rozmiar_tablicy, double wyniki_szumu[], double tab_szum_wlasciwa[])
-{
-	srand(time(NULL));
-	int liczba_zaszumionych;
-	int max = (0.21 * rozmiar_tablicy);                  //gorna granica losowania
-	int min = (0.1 * rozmiar_tablicy);                   //dolna granica losowania
-
-	liczba_zaszumionych = (rand() % max + min);	// losuje od 0 do (max-1), a do tego dodaje wartosc min
-	printf("Liczba zaszumionych probek = %d\n", liczba_zaszumionych);
-
-	double amplituda;
-	double najwieksza = wyniki[0];              //ustalamy, że największą wartością jest (póki co) pierwszy element tablicy
-	double najmniejsza = wyniki[0];             //ustalamy, że najmniejszą wartością jest (póki co) pierwszy element tablicy
-
-	for (int i = 0; i < rozmiar_tablicy; i++)         //szukanie amplitudy
-	{
-		if (wyniki[i] > najwieksza)
-			najwieksza = wyniki[i];                 //jeśli sprawdzany element tablicy jest większy od tego (dotychczas) największego, to on staje się tym największym
-
-		if (wyniki[i] < najmniejsza)
-			najmniejsza = wyniki[i];               //jeśli sprawdzany element tablicy jest mniejszy od tego (dotychczas) najmniejszego, to on staje się tym najmniejszym
-		//printf("wyniki: %lf\n", wyniki[i]);
-	}
-
-	amplituda = fabs(najwieksza) + fabs(najmniejsza);
-
-	printf("Najwieksza wartosc funkcji to: %lf\n", najwieksza);
-	printf("Najmniejsza wartosc funkcji to: %lf\n", najmniejsza);
-	printf("Amplituda wynosi: %lf\n", amplituda);
-	int x = 0;
-	for (x; x < rozmiar_tablicy; x++) {
-		tab_szum_wlasciwa[x] = wyniki[x];		//przerzucenie wynikow do drugiej tablicy, do ktorej potem jest dodawany szum
-	}
-
-	int i2;
-	double wartosc_szumu;
-	int max_szum = 31 * amplituda * 2;
-	int min_szum = -31 * amplituda;
-	int numer_tablicy;
-	//printf("max_szum=%d, min_szum=%d\n", max_szum, min_szum);
-	for (i2 = 0; i2 < liczba_zaszumionych; i2++)
-	{
-		numer_tablicy = (rand() % rozmiar_tablicy + 1);
-		wartosc_szumu = (rand() % max_szum / 10. + min_szum / 10.);
-		wyniki_szumu[numer_tablicy] = wartosc_szumu;
-		//printf("wynik szumu:%lf\n", wyniki_szumu[numer_tablicy]);
-		tab_szum_wlasciwa[numer_tablicy] = wyniki_szumu[numer_tablicy] + wyniki[numer_tablicy];	//dodanie szumu do tablicy
-			//printf("wyniki po zaszumieniu to:%lf\n", tab_szum_wlasciwa[numer_tablicy]);
-	}
-	x = 0;
-	for (x; x < rozmiar_tablicy; x++)
-	{
-		printf("wyniki ostateczne:%lf\n", tab_szum_wlasciwa[x]);
-	}
-}
 
 int main() {
 	double tab_wspolczynniki[4];
@@ -136,8 +82,8 @@ int main() {
 
 	//sawSignal(tab_wspolczynniki, dziedzina_minimum, dziedzina_maksimum, tab_wartosci, &ilosc_zapelnionych_komorek,&rozdzielczosc);				//FUNKCJA
 	generatorSinus(tab_wspolczynniki, dziedzina_minimum, dziedzina_maksimum, tab_wartosci, &ilosc_zapelnionych_komorek, &rozdzielczosc);			//FUNKCJA
-	szum(tab_wartosci, rozmiar_tablicy, tab_szum, tab_szum_wlasciwa);
-	zapisz(tab_wartosci, dziedzina_minimum, dziedzina_maksimum, &rozdzielczosc, tab_szum_wlasciwa);
+	szum(tab_wartosci, rozmiar_tablicy, tab_szum,tab_szum_wlasciwa);
+	zapisz(tab_wartosci,tab_szum_wlasciwa, &rozmiar_tablicy);
 
 
 	return 0;
@@ -218,19 +164,71 @@ void rozmiar_tablic(int* rozmiar_tablicy)
 	}
 }
 
-void zapisz(double* tab_wartosci, double dziedzina_minimum, double dziedzina_maksimum, double* rozdzielczosc, double tab_szum_wlasciwa[]) {
+void zapisz(double* tab_wartosci, double* tab_szum_wlasciwa, int *rozmiar_tablicy) {
 	FILE* plik;
-	double i = dziedzina_minimum;
-	double wartosc;
-	int j;
+	int j=0;
 
 	plik = fopen("Wyniki.csv", "w");
 
-	for (j = 0; j < (dziedzina_maksimum - dziedzina_minimum) * (1 / (*rozdzielczosc)); j++) {
-		wartosc = *(tab_wartosci + j);
-		fprintf(plik, "%lf,%lf\n", i, wartosc); //drukuje punkt i jego wartosc(od lewej strony granicy) z separatorem ";"
-		i = i + *rozdzielczosc;
+	for (j; j < *rozmiar_tablicy; j++) {
+		fprintf(plik, "%d;%lf;%lf,\n", j, tab_wartosci[j], tab_szum_wlasciwa[j]);
 	}
 
 	fclose(plik);
+}
+
+void szum(double wyniki[], int rozmiar_tablicy, double wyniki_szumu[], double tab_szum_wlasciwa[])
+{
+	srand(time(NULL));
+	int liczba_zaszumionych;
+	int max = (0.21 * rozmiar_tablicy);                  //gorna granica losowania
+	int min = (0.1 * rozmiar_tablicy);                   //dolna granica losowania
+
+	liczba_zaszumionych = (rand() % max + min);	// losuje od 0 do (max-1), a do tego dodaje wartosc min
+	printf("Liczba zaszumionych probek = %d\n", liczba_zaszumionych);
+
+	double amplituda;
+	double najwieksza = wyniki[0];              //ustalamy, że największą wartością jest (póki co) pierwszy element tablicy
+	double najmniejsza = wyniki[0];             //ustalamy, że najmniejszą wartością jest (póki co) pierwszy element tablicy
+
+	for (int i = 0; i < rozmiar_tablicy; i++)         //szukanie amplitudy
+	{
+		if (wyniki[i] > najwieksza)
+			najwieksza = wyniki[i];                 //jeśli sprawdzany element tablicy jest większy od tego (dotychczas) największego, to on staje się tym największym
+
+		if (wyniki[i] < najmniejsza)
+			najmniejsza = wyniki[i];               //jeśli sprawdzany element tablicy jest mniejszy od tego (dotychczas) najmniejszego, to on staje się tym najmniejszym
+		//printf("wyniki: %lf\n", wyniki[i]);
+	}
+
+	amplituda = fabs(najwieksza) + fabs(najmniejsza);
+
+	printf("Najwieksza wartosc funkcji to: %lf\n", najwieksza);
+	printf("Najmniejsza wartosc funkcji to: %lf\n", najmniejsza);
+	printf("Amplituda wynosi: %lf\n", amplituda);
+	int x = 0;
+	for (x; x < rozmiar_tablicy; x++) {
+		tab_szum_wlasciwa[x] = wyniki[x];		//przerzucenie wynikow do drugiej tablicy, do ktorej potem jest dodawany szum
+	}
+
+	int i2;
+	double wartosc_szumu;
+	int max_szum = 31 * amplituda * 2;
+	int min_szum = -31 * amplituda;
+	int numer_tablicy;
+	//printf("max_szum=%d, min_szum=%d\n", max_szum, min_szum);
+	for (i2 = 0; i2 < liczba_zaszumionych; i2++)
+	{
+		numer_tablicy = (rand() % rozmiar_tablicy + 1);
+		wartosc_szumu = (rand() % max_szum / 10. + min_szum / 10.);
+		wyniki_szumu[numer_tablicy] = wartosc_szumu;
+		//printf("wynik szumu:%lf\n", wyniki_szumu[numer_tablicy]);
+		tab_szum_wlasciwa[numer_tablicy] = wyniki_szumu[numer_tablicy] + wyniki[numer_tablicy];	//dodanie szumu do tablicy
+			//printf("wyniki po zaszumieniu to:%lf\n", tab_szum_wlasciwa[numer_tablicy]);
+	}
+	x = 0;
+	for (x; x < rozmiar_tablicy; x++)
+	{
+		printf("wyniki ostateczne:%lf\n", tab_szum_wlasciwa[x]);
+	}
 }
