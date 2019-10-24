@@ -171,7 +171,7 @@ void zapisz(double* tab_wartosci, double* tab_szum_wlasciwa, int *rozmiar_tablic
 	plik = fopen("Wyniki.csv", "w");
 
 	for (j; j < *rozmiar_tablicy; j++) {
-		fprintf(plik, "%d;%lf;%lf,\n", j, tab_wartosci[j], tab_szum_wlasciwa[j]);
+		fprintf(plik, "%d;%lf;%lf\n", j, tab_wartosci[j], tab_szum_wlasciwa[j]);
 	}
 
 	fclose(plik);
