@@ -7,12 +7,12 @@
 
 void wczytywanie_wspolczynnikow(double tab_wspolczynniki[], int ilosc_wspolczynnikow);
 void dziedzina(double* dziedzina_minimum, double* dziedzina_maksimum);
-void generatorSinus(double tab_wspolczynniki[], int rozmiar_tablicy, double tab_wartosci[], int* ilosc, double* rozdzielczosc, double* dziedzina_minimum);
+void generatorSinus(double tab_wspolczynniki[], int rozmiar_tablicy, double tab_wartosci[], int* ilosc, double* rozdzielczosc, double* dziedzina_minimum, double *tab_szum_wlasciwa, double* wyniki_po_filtrze);
 void rozmiar_tablic(int* rozmiar_tablicy);
-void zapisz(double* tab_wartosci, double* tab_szum_wlasciwa, int* rozmiar_tablicy, double* wyniki_po_sredniej);
-void szum(double tab_wartosci[], int rozmiar_tablicy, double wyniki_szumu[], double tab_szum_wlasciwa[]);
-void filtr_srednia_ruchoma(double* tab_szum_wlasciwa, double* wyniki_po_sredniej, int rozmiar_tablicy);
-void filtr_medianowy(double* tab_szum_wlasciwa, double* wyniki_po_medianowym, int rozmiar_tablicy);
+void zapisz(double* tab_wartosci, double* tab_szum_wlasciwa, int* rozmiar_tablicy, double* wyniki_po_filtrze);
+void szum(double tab_wartosci[], int rozmiar_tablicy, double wyniki_szumu[], double tab_szum_wlasciwa[], double* wyniki_po_filtrze);
+void filtr_srednia_ruchoma(double* tab_szum_wlasciwa, double* wyniki_po_sredniej, int rozmiar_tablicy,double* wyniki_po_filtrze);
+void filtr_medianowy(double* tab_szum_wlasciwa, double* wyniki_po_medianowym, int rozmiar_tablicy, double* wyniki_po_filtrze);
 
 void sawSignal(float tab_wspolczynniki[], float dziedzina_minimum, float dziedzina_maksimum, float tab_wartosci[], int* ilosc, float* rozdzielczosc) {
 	float coefficentA = tab_wspolczynniki[0];
@@ -41,6 +41,36 @@ void sawSignal(float tab_wspolczynniki[], float dziedzina_minimum, float dziedzi
 		}
 	}
 	*(tab_wartosci + i) = '\0';
+}
+
+void otwarcie_pliku(double* tab_wartosci, double* tab_szum_wlasciwa, int *rozmiar_tablicy)
+{
+	double pierwsza_liczba;
+	double druga_liczba;
+	int nowy_rozmiar;
+	nowy_rozmiar = 1;
+
+	{
+		double pierwsza_liczba, druga_liczba;
+		FILE* plik = fopen("Wyniki.CSV", "r");
+		if (plik)
+		{
+			while (fscanf(plik, "%lf;%lf", &pierwsza_liczba, &druga_liczba) == 2) {	//==2 oznacza, ze jezeli udalo sie wczytac dokladnie 2 elementy
+				printf("%lf -> %lf\n", pierwsza_liczba, druga_liczba);
+				tab_wartosci = realloc(tab_wartosci, nowy_rozmiar * sizeof(*tab_wartosci));	//zwraca wskaznik tablicy o realokowanym rozmiarze, jako parametr przyjmuje: tablice(adres) ktorą ma realokowac,na jaki rozmiar ma zmienic(tutaj wartosc)
+				tab_szum_wlasciwa = realloc(tab_szum_wlasciwa, nowy_rozmiar * sizeof(*tab_szum_wlasciwa));
+				tab_wartosci[nowy_rozmiar - 1] = pierwsza_liczba;
+				tab_szum_wlasciwa[nowy_rozmiar - 1] = druga_liczba;
+				printf("tab_wartosci: %lf	tab_szum_wlasciwa:%lf\n", tab_wartosci[nowy_rozmiar - 1], tab_szum_wlasciwa[nowy_rozmiar - 1]);
+
+			}
+			fclose(plik);
+			*rozmiar_tablicy = nowy_rozmiar;
+
+		}
+		else printf("Ups, cos nie dziala! Nie udalo sie otworzyc pliku CSV. Sprawdz kod i sprobuj zresetowac program\n");
+		return 0;
+	}
 }
 
 
@@ -75,6 +105,7 @@ int main() {
 	double* tab_szum_wlasciwa = malloc(rozmiar_tablicy * sizeof(*tab_szum_wlasciwa));		//tutaj jest tablica wartosci, z dodanym szumem
 	double* wyniki_po_sredniej = malloc(rozmiar_tablicy * sizeof(*wyniki_po_sredniej));
 	double* wyniki_po_medianowym = malloc(rozmiar_tablicy * sizeof(*wyniki_po_medianowym));
+	double* wyniki_po_filtrze = malloc(rozmiar_tablicy * sizeof(*wyniki_po_filtrze));
 
 
 	double* tab_odfiltrowane = malloc(rozmiar_tablicy * sizeof(*tab_wartosci));
@@ -89,14 +120,15 @@ int main() {
 	tab_wspolczynniki[3] = 0;
 
 	//sawSignal(tab_wspolczynniki, dziedzina_minimum, dziedzina_maksimum, tab_wartosci, &ilosc_zapelnionych_komorek,&rozdzielczosc);				//FUNKCJA
-	generatorSinus(tab_wspolczynniki,rozmiar_tablicy, tab_wartosci, &ilosc_zapelnionych_komorek, &rozdzielczosc,&dziedzina_minimum);			//FUNKCJA
-	for (int i = 0; i < rozmiar_tablicy; i++)
-	printf("z maina tab_wartosci[%d]: %lf\n", i, tab_wartosci[i]);
-	szum(tab_wartosci, rozmiar_tablicy, tab_szum,tab_szum_wlasciwa);
-	filtr_srednia_ruchoma(tab_szum_wlasciwa,wyniki_po_sredniej,rozmiar_tablicy);
-	filtr_medianowy(tab_szum_wlasciwa, wyniki_po_medianowym, rozmiar_tablicy);
-	zapisz(tab_wartosci,tab_szum_wlasciwa, &rozmiar_tablicy,wyniki_po_sredniej,wyniki_po_medianowym);
-
+	generatorSinus(tab_wspolczynniki,rozmiar_tablicy, tab_wartosci, &ilosc_zapelnionych_komorek, &rozdzielczosc,&dziedzina_minimum,tab_szum_wlasciwa,wyniki_po_filtrze);			//FUNKCJA
+	
+			
+	
+	szum(tab_wartosci, rozmiar_tablicy, tab_szum,tab_szum_wlasciwa,wyniki_po_filtrze);
+	filtr_srednia_ruchoma(tab_szum_wlasciwa,wyniki_po_sredniej,rozmiar_tablicy, wyniki_po_filtrze);
+	filtr_medianowy(tab_szum_wlasciwa, wyniki_po_medianowym, rozmiar_tablicy, wyniki_po_filtrze);
+	zapisz(tab_wartosci,tab_szum_wlasciwa, &rozmiar_tablicy,wyniki_po_filtrze);
+	//otwarcie_pliku(tab_wartosci, tab_szum_wlasciwa, &rozmiar_tablicy);
 
 	return 0;
 }
@@ -147,7 +179,7 @@ void dziedzina(double* dziedzina_minimum, double* dziedzina_maksimum)
 	} while (*dziedzina_maksimum <= *dziedzina_minimum);
 }
 
-void generatorSinus(double wspolczynniki[], int rozmiar_tablicy, double tab_wartosci[], int* ilosc, double* rozdzielczosc, double* dziedzina_minimum) {
+void generatorSinus(double wspolczynniki[], int rozmiar_tablicy, double tab_wartosci[], int* ilosc, double* rozdzielczosc, double* dziedzina_minimum, double* tab_szum_wlasciwa, double* wyniki_po_filtrze) {
 	double parametrA = wspolczynniki[0]; //amplituda
 	double parametrB = wspolczynniki[1];
 	double parametrC = wspolczynniki[2]; //czestotliwosc
@@ -159,12 +191,13 @@ void generatorSinus(double wspolczynniki[], int rozmiar_tablicy, double tab_wart
 	for (j = 0; j < rozmiar_tablicy; j = j++) {
 		x = *dziedzina_minimum + (j * (*rozdzielczosc));	//x to jeden krok, zaczynajacy sie od dziedziny
 		tab_wartosci[j] = parametrA * sinf((parametrC * x) + parametrD) + parametrB;  
-
+		tab_szum_wlasciwa[j] = parametrA * sinf((parametrC * x) + parametrD) + parametrB;
+		wyniki_po_filtrze[j] = parametrA * sinf((parametrC * x) + parametrD) + parametrB;
 				//SPRAWDZENIA
 		*ilosc = (*ilosc) + 1; //ilosc to ilosc wynikow, ile razy petla sie zrobila
 		 //printf("%d, ", *ilosc);   //sprawdzenie ilosci zapelnionych komorek
 		//printf("j=%lf,", j); // sprawdzenie jak sie j nalicza
-		printf("  j=[%d]    wartosc z generatora to: %lf \n", j, tab_wartosci[j]);	//*/
+		//printf("  j=[%d]    wartosc z generatora to: %lf \n", j, wyniki_po_filtrze[j]);	//*/
 		
 
 	}
@@ -181,43 +214,24 @@ void rozmiar_tablic(int* rozmiar_tablicy)
 	}
 }
 
-void zapisz(double* tab_wartosci, double* tab_szum_wlasciwa, int *rozmiar_tablicy, double* wyniki_po_sredniej, double* wyniki_po_medianowym) {
+void zapisz(double* tab_wartosci, double* tab_szum_wlasciwa, int* rozmiar_tablicy, double* wyniki_po_filtrze) {
 	FILE* plik;
-	int j=0;
+	int j = 0;
 
 	plik = fopen("Wyniki.CSV", "w");
-	//printf("\n\n\ntab_wartosci[0]=%lf \nwyniki po sredniej[0]=%lf\n wyniki_po_medianowym[0]=%lf\n", tab_wartosci[0], wyniki_po_sredniej[0], wyniki_po_medianowym[0]);
 
 	if (plik == NULL)
 	{
 		printf("Ups, cos nie dziala! Nie udalo sie otworzyc pliku CSV. Sprawdz kod i sprobuj zresetowac program\n");
 	}
+	for (j; j < *rozmiar_tablicy; j++) {
+		fprintf(plik, "%d;%lf;%lf;%lf\n", j, tab_wartosci[j], tab_szum_wlasciwa[j], wyniki_po_filtrze[j]);
+	}
 
-	if (wyniki_po_sredniej[0]>-10000000 && wyniki_po_medianowym[0] < -100000000) {
-		for (j; j < *rozmiar_tablicy; j++) {
-			fprintf(plik, "%d;%lf;%lf;%lf\n", j, tab_wartosci[j], tab_szum_wlasciwa[j], wyniki_po_sredniej[j]);
-		}
-	}
-	if (wyniki_po_medianowym[0] > -100000000 && wyniki_po_sredniej[0] < -100000000) {
-		for (j; j < *rozmiar_tablicy; j++) {
-			fprintf(plik, "%d;%lf;%lf;;%lf\n", j, tab_wartosci[j], tab_szum_wlasciwa[j], wyniki_po_medianowym[j]);
-		}
-	}
-	if (wyniki_po_sredniej[0] > -100000000 && wyniki_po_medianowym[0] > -100000000) {
-		for (j; j < *rozmiar_tablicy; j++) {
-			fprintf(plik, "%d;%lf;%lf;%lf;%lf\n", j, tab_wartosci[j], tab_szum_wlasciwa[j], wyniki_po_sredniej[j], wyniki_po_medianowym[j]);
-		}
-	}
-	else {
-		for (j; j < *rozmiar_tablicy; j++) {
-			fprintf(plik, "%d;%lf;%lf;%lf\n", j, tab_wartosci[j], tab_szum_wlasciwa[j], wyniki_po_medianowym[j]);
-		}
-		
-	}
 	fclose(plik);
 }
 
-void szum(double tab_wartosci[], int rozmiar_tablicy, double wyniki_szumu[], double tab_szum_wlasciwa[])
+void szum(double tab_wartosci[], int rozmiar_tablicy, double wyniki_szumu[], double tab_szum_wlasciwa[], double* wyniki_po_filtrze)
 {
 	srand(time(NULL));
 	int liczba_zaszumionych;
@@ -239,7 +253,6 @@ void szum(double tab_wartosci[], int rozmiar_tablicy, double wyniki_szumu[], dou
 
 		if (tab_wartosci[i] < najmniejsza)
 			najmniejsza = tab_wartosci[i];               //jeśli sprawdzany element tablicy jest mniejszy od tego (dotychczas) najmniejszego, to on staje się tym najmniejszym
-		//printf("tab_wartosci[%d]: %lf\n",i ,tab_wartosci[i]);
 	}
 
 	amplituda = fabs(najwieksza) + fabs(najmniejsza);
@@ -268,6 +281,10 @@ void szum(double tab_wartosci[], int rozmiar_tablicy, double wyniki_szumu[], dou
 		tab_szum_wlasciwa[numer_tablicy] = wyniki_szumu[numer_tablicy] + tab_wartosci[numer_tablicy];	//dodanie szumu do tablicy
 			//printf("\nwyniki po zaszumieniu to:%lf\n", tab_szum_wlasciwa[numer_tablicy]);
 	}
+	for (int i3 = 0; i3 < rozmiar_tablicy; i3++)
+	{
+		wyniki_po_filtrze[i3] = tab_szum_wlasciwa[i3];
+	}
 	/*x = 0;
 	for (x; x < rozmiar_tablicy; x++)
 	{
@@ -275,7 +292,7 @@ void szum(double tab_wartosci[], int rozmiar_tablicy, double wyniki_szumu[], dou
 	}		//*/
 }
 
-void filtr_srednia_ruchoma(double* tab_szum_wlasciwa, double* wyniki_po_sredniej, int rozmiar_tablicy)
+void filtr_srednia_ruchoma(double* tab_szum_wlasciwa, double* wyniki_po_sredniej, int rozmiar_tablicy,double* wyniki_po_filtrze)
 {
 	double tab[5];
 
@@ -294,12 +311,16 @@ void filtr_srednia_ruchoma(double* tab_szum_wlasciwa, double* wyniki_po_sredniej
 		wyniki_po_sredniej[j] = (tab[0] + tab[1] + tab[2] + tab[3] + tab[4]) / 5;
 		
 	}
-	for (int x = 0; x < rozmiar_tablicy;x++)	printf("[%d]wynik po sredniej: %lf\n", x, wyniki_po_sredniej[x]);
+	//for (int x = 0; x < rozmiar_tablicy;x++)	printf("[%d]wynik po sredniej: %lf\n", x, wyniki_po_sredniej[x]);
+	for (int i3 = 0; i3 < rozmiar_tablicy; i3++)
+	{
+		wyniki_po_filtrze[i3] = wyniki_po_sredniej[i3];
+	}
 
 
 }
 
-void filtr_medianowy(double* tab_szum_wlasciwa, double* wyniki_po_medianowym, int rozmiar_tablicy) {
+void filtr_medianowy(double* tab_szum_wlasciwa, double* wyniki_po_medianowym, int rozmiar_tablicy, double* wyniki_po_filtrze) {
 
 	double tab[5];
 	double tab_2[5];
@@ -335,5 +356,11 @@ void filtr_medianowy(double* tab_szum_wlasciwa, double* wyniki_po_medianowym, in
 		} while (szerokosc_okna_filtra > 1);
 		wyniki_po_medianowym[j] = tab[2];
 	}
-	for (int x = 0; x < rozmiar_tablicy; x++)	printf("wynik po medianowym[%d]: %lf\n", x,wyniki_po_medianowym[x]);		//sprawdzenie dzialania
+	//for (int x = 0; x < rozmiar_tablicy; x++)	printf("wynik po medianowym[%d]: %lf\n", x,wyniki_po_medianowym[x]);		//sprawdzenie dzialania
+
+	for (int i3 = 0; i3 < rozmiar_tablicy; i3++)
+	{
+		wyniki_po_filtrze[i3] = wyniki_po_medianowym[i3];
+	}
 }
+
