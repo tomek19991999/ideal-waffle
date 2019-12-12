@@ -11,10 +11,10 @@ typedef struct
 	int szerokosc;
 	int wysokosc;
 	int glebia_szarosci;
-	int **tab;
+	int** tab;
 }dane;
 
-void pomin_komentarze(FILE *PLIK)
+void pomin_komentarze(FILE* PLIK)
 {
 	int c;
 	char line[100];
@@ -29,11 +29,11 @@ void pomin_komentarze(FILE *PLIK)
 		fseek(PLIK, -1, SEEK_CUR);	//cofamy sie o 1
 }
 
-void wczytaj_obraz(int ilosc, dane *obraz)
+void wczytaj_obraz(int ilosc, dane* obraz)
 {
 	int i, j;
 	int k = 0;
-	FILE * PLIK;
+	FILE* PLIK;
 	printf("Podaj nazwe otwieranego pliku (nie zapomnij o .pgm):\n");
 	scanf("%s", obraz[ilosc].nazwa);
 	printf("Podales nazwe: %s\n", obraz[ilosc].nazwa);
@@ -47,7 +47,7 @@ void wczytaj_obraz(int ilosc, dane *obraz)
 			scanf("%s", obraz[ilosc].nazwa);
 			printf("Podales nazwe: %s\n", obraz[ilosc].nazwa);
 		} while ((PLIK = fopen(obraz[ilosc].nazwa, "rb")) == NULL);
-	}	
+	}
 	//############### wypelnienie struktury #####################
 	pomin_komentarze(PLIK);
 	fscanf(PLIK, "%s", obraz[ilosc].format);			//fscanf bierze do znaku bialego
@@ -98,7 +98,7 @@ void wczytaj_obraz(int ilosc, dane *obraz)
 
 }
 
-void usun_obraz(dane *obraz, int *ilosc, int* aktywny)
+void usun_obraz(dane* obraz, int* ilosc, int* aktywny)
 {
 	int i, wybor, c;
 	if (*ilosc == 0)
@@ -117,12 +117,12 @@ void usun_obraz(dane *obraz, int *ilosc, int* aktywny)
 			while (scanf("%d", &wybor) != 1)
 				while ((c = getchar()) != '\n' && c != EOF);
 
-			if (wybor <= 0 || wybor > *ilosc)
+			if (wybor <= 0 || wybor > * ilosc)
 				printf("Wybierz odpowiednia liczbe!!!\n");
-		} while (wybor <= 0 || wybor > *ilosc);
+		} while (wybor <= 0 || wybor > * ilosc);
 
-		free(obraz[wybor-1].tab);						//poprawic zwalnianie pamieci
-		for (i = wybor - 1; i<*ilosc - 1; i++)
+		free(obraz[wybor - 1].tab);						//poprawic zwalnianie pamieci
+		for (i = wybor - 1; i < *ilosc - 1; i++)
 			obraz[i] = obraz[i + 1];
 
 
@@ -132,10 +132,10 @@ void usun_obraz(dane *obraz, int *ilosc, int* aktywny)
 	system("cls");
 }
 
-void zapisz_obraz(dane *obraz, int *aktywny, int *ilosc)
+void zapisz_obraz(dane* obraz, int* aktywny, int* ilosc)
 {
 	int i, j, c, jak_zapisac;
-	FILE *PLIK;
+	FILE* PLIK;
 	char txt[100];
 	if (*ilosc == 0)
 	{
@@ -159,7 +159,7 @@ void zapisz_obraz(dane *obraz, int *aktywny, int *ilosc)
 	{
 		if ((PLIK = fopen(obraz[*aktywny].nazwa, "w")) == NULL)
 		{
-			printf("Nie moge otworzyc pliku do zapisu!\n");									
+			printf("Nie moge otworzyc pliku do zapisu!\n");
 			system("PAUSE");
 			exit(0);
 		}
@@ -190,10 +190,11 @@ void zapisz_obraz(dane *obraz, int *aktywny, int *ilosc)
 		fprintf(PLIK, "\n");
 	}
 	fclose(PLIK);
+	system("cls");
 	printf("\nZapisano!\n");
 }
 
-void zmien_obraz(dane *obraz, int *ilosc, int *aktywny)
+void zmien_obraz(dane* obraz, int* ilosc, int* aktywny)
 {
 	int i, c;
 	if (*ilosc == 0)
@@ -209,23 +210,23 @@ void zmien_obraz(dane *obraz, int *ilosc, int *aktywny)
 		while (scanf("%d", &*aktywny) != 1)
 			while ((c = getchar()) != '\n' && c != EOF);
 
-		if (*aktywny <= 0 || *aktywny > *ilosc)
+		if (*aktywny <= 0 || *aktywny > * ilosc)
 			printf("Wybierz odpowiednia liczbe!!!\n");
-	} while (*aktywny <= 0 || *aktywny > *ilosc);
-	--*aktywny;
+	} while (*aktywny <= 0 || *aktywny > * ilosc);
+	--* aktywny;
 	system("cls");
 }
 
-void wypisz_obrazy(dane *obraz, int *ilosc)
+void wypisz_obrazy(dane* obraz, int* ilosc)
 {
 	int i;
 	for (i = 0; i < *ilosc; i++)
 		printf("\n%d. %s  %dx%d\n", i + 1, obraz[i].nazwa, obraz[i].szerokosc, obraz[i].wysokosc);
 }
 
-void odbicie_xy(dane *obraz, int **aktywny, int *jakie_formatowanie)
+void odbicie_xy(dane* obraz, int** aktywny, int* jakie_formatowanie)
 {
-	int **tab, i, j;
+	int** tab, i, j;
 	tab = malloc(obraz[**aktywny].wysokosc * sizeof(*tab));
 	if (tab != NULL)
 	{
@@ -234,7 +235,7 @@ void odbicie_xy(dane *obraz, int **aktywny, int *jakie_formatowanie)
 			tab[i] = malloc(obraz[**aktywny].szerokosc * sizeof(tab));			//tworzymy tablice pomocnicza
 			if (tab[i] == NULL)
 			{
-				for(j = 0; j < i; j++)
+				for (j = 0; j < i; j++)
 					free(tab[j]);
 				free(tab);
 				exit(0);
@@ -263,14 +264,14 @@ void odbicie_xy(dane *obraz, int **aktywny, int *jakie_formatowanie)
 				obraz[**aktywny].tab[i][j] = tab[i][j];
 	}
 
-	for(i = 0; i < obraz[**aktywny].wysokosc; i++)
+	for (i = 0; i < obraz[**aktywny].wysokosc; i++)
 		free(tab[i]);
 	free(tab);
 }
 
-void obrot(dane *obraz, int **aktywny)
+void obrot(dane* obraz, int** aktywny)
 {
-	int **tab, i, j, k, ile_razy, c, x;
+	int** tab, i, j, k, ile_razy, c, x;
 
 	printf("O ile stopni chcesz obrocic obraz w lewo?\n1 - 90\n2 - 180\n3 - 270\n");
 	do
@@ -311,7 +312,7 @@ void obrot(dane *obraz, int **aktywny)
 		for (i = 0; i < obraz[**aktywny].wysokosc; i++)		// czyscimy tablice aktywną, zeby miec potem nową aktywną POPRAWIC, BO NIE CZYSCI WSZYSTKIEGO [i][j]
 			free(obraz[**aktywny].tab[i]);
 		free(obraz[**aktywny].tab);
-		
+
 		//########### zmiana wymiarow tablicy obrazu ###############
 		x = obraz[**aktywny].wysokosc;
 		obraz[**aktywny].wysokosc = obraz[**aktywny].szerokosc;			// zmieniamy nazwy, bo szerokosc staje sie wysokoscia
@@ -322,10 +323,10 @@ void obrot(dane *obraz, int **aktywny)
 		{
 			for (i = 0; i < obraz[**aktywny].wysokosc; i++)
 			{
-				obraz[**aktywny].tab[i] = malloc(obraz[**aktywny].szerokosc * sizeof(obraz[**aktywny].tab));			
+				obraz[**aktywny].tab[i] = malloc(obraz[**aktywny].szerokosc * sizeof(obraz[**aktywny].tab));
 				if (obraz[**aktywny].tab[i] == NULL)
 				{
-					for(j = 0; j < i; j++)
+					for (j = 0; j < i; j++)
 						free(obraz[**aktywny].tab[j]);		//zabezpieczenie
 					free(obraz[**aktywny].tab);
 					exit(0);
@@ -339,16 +340,16 @@ void obrot(dane *obraz, int **aktywny)
 			for (j = 0; j < obraz[**aktywny].szerokosc; j++)
 				obraz[**aktywny].tab[i][j] = tab[i][j];
 		//##########################################################
-		
-		for(i = 0; i < obraz[**aktywny].wysokosc; i++)		//prawilne czyszczenie
+
+		for (i = 0; i < obraz[**aktywny].wysokosc; i++)		//prawilne czyszczenie
 			free(tab[i]);
 		free(tab);
 	}
 }
 
-void histogram(dane *obraz, int **aktywny)
+void histogram(dane* obraz, int** aktywny)
 {
-	int	i, j, k, **tab;
+	int	i, j, k, ** tab;
 	//############### tablica dynamiczna ###########################
 	tab = (int*)malloc((obraz[**aktywny].glebia_szarosci + 1) * sizeof(*tab));
 	if (tab != NULL)
@@ -368,14 +369,14 @@ void histogram(dane *obraz, int **aktywny)
 	//##############################################################
 	for (k = 0; k <= obraz[**aktywny].glebia_szarosci; k++)					//wstawiamy zera do [k][1]
 		tab[k][1] = 0;
-	
+
 	for (i = 0; i < obraz[**aktywny].wysokosc; i++)
 		for (j = 0; j < obraz[**aktywny].szerokosc; j++)
 			for (k = 0; k <= obraz[**aktywny].glebia_szarosci; k++)
 				if (obraz[**aktywny].tab[i][j] == k)						//szukamy ile mamy np. liczb o wartosci 115. Jak znajdzie, to +1 do tablicy [k][1], czyli dla tego przypadku [115][1]= +1
 					tab[k][1]++;
-			
-			
+
+
 
 	//############### zapis pliku .csv #############################
 	FILE* PLIK;
@@ -400,7 +401,7 @@ void histogram(dane *obraz, int **aktywny)
 	free(tab);
 }
 
-void progowanie(dane *obraz, int **aktywny)
+void progowanie(dane* obraz, int** aktywny)
 {
 	int prog, c, i, j;
 	printf("Glebia szarosci: %d\n", obraz[**aktywny].glebia_szarosci);
@@ -424,7 +425,7 @@ void progowanie(dane *obraz, int **aktywny)
 		}
 }
 
-void negatyw(dane *obraz, int **aktywny)
+void negatyw(dane* obraz, int** aktywny)
 {
 	int i, j;
 	for (i = 0; i < obraz[**aktywny].wysokosc; i++)
@@ -432,9 +433,9 @@ void negatyw(dane *obraz, int **aktywny)
 			obraz[**aktywny].tab[i][j] = obraz[**aktywny].glebia_szarosci - obraz[**aktywny].tab[i][j];
 }
 
-void pieprz_sol(dane *obraz, int **aktywny)
+void pieprz_sol(dane* obraz, int** aktywny)
 {
-	int i, j, ile_pikseli, BczyW, c, ile, **ktore;
+	int i, j, ile_pikseli, BczyW, c, ile, ** ktore;
 
 	//############### wybor ilosci zaszumionych pikseli ############
 	printf("Czy procent szumow ma byc wiekszy niz polowa?\nTAK - 1\nNIE - 0\n");
@@ -470,7 +471,7 @@ void pieprz_sol(dane *obraz, int **aktywny)
 		do						// robimy jak chcemy ponad polowe
 		{
 			for (i = 0; i < obraz[**aktywny].wysokosc; i++)
-				for (j = 0; j < obraz[**aktywny].szerokosc; j++)		
+				for (j = 0; j < obraz[**aktywny].szerokosc; j++)
 					ktore[i][j] = 0;
 			ile_pikseli = 0;
 			for (i = 0; i < obraz[**aktywny].wysokosc; i++)
@@ -514,15 +515,15 @@ void pieprz_sol(dane *obraz, int **aktywny)
 					obraz[**aktywny].tab[i][j] = obraz[**aktywny].glebia_szarosci;
 				else
 					obraz[**aktywny].tab[i][j] = 0;
-		}
+			}
 	//##############################################################
 
 	free(ktore);													//poprawic
 }
 
-void filtr_gaussa(dane *obraz, int **aktywny)
+void filtr_gaussa(dane* obraz, int** aktywny)
 {
-	int i, j, **tab;
+	int i, j, ** tab;
 	//############### tablica dynamiczna ###########################
 	tab = malloc((obraz[**aktywny].wysokosc) * sizeof(*tab));
 	if (tab != NULL)
@@ -532,7 +533,7 @@ void filtr_gaussa(dane *obraz, int **aktywny)
 			tab[i] = malloc((obraz[**aktywny].szerokosc) * sizeof(tab));
 			if (tab[i] == NULL)
 			{
-				for(j = 0; j < i; j++)
+				for (j = 0; j < i; j++)
 					free(tab[j]);
 				free(tab);
 				exit(0);
@@ -549,14 +550,14 @@ void filtr_gaussa(dane *obraz, int **aktywny)
 		for (j = 1; j < obraz[**aktywny].szerokosc - 2; j++)
 			obraz[**aktywny].tab[i][j] = tab[i][j];
 
-	for(i = 0; i < obraz[**aktywny].wysokosc; i++)
+	for (i = 0; i < obraz[**aktywny].wysokosc; i++)
 		free(tab[i]);
-	free(tab);					
+	free(tab);
 }
 
-void filtr_medianowy(dane *obraz, int **aktywny)
+void filtr_medianowy(dane* obraz, int** aktywny)
 {
-	int i, j, **tab, *tab_sortowania, a, b, c = 0;
+	int i, j, ** tab, * tab_sortowania, a, b, c = 0;
 
 	//############### tablice dynamiczne ###########################
 	tab_sortowania = (int*)malloc(9 * sizeof(int));
@@ -575,7 +576,7 @@ void filtr_medianowy(dane *obraz, int **aktywny)
 			tab[i] = malloc((obraz[**aktywny].szerokosc) * sizeof(tab));
 			if (tab[i] == NULL)
 			{
-				for(j = 0; j < i; j++)
+				for (j = 0; j < i; j++)
 					free(tab[j]);
 				free(tab);
 				exit(0);
@@ -588,7 +589,7 @@ void filtr_medianowy(dane *obraz, int **aktywny)
 		for (j = 1; j < obraz[**aktywny].szerokosc - 2; j++)
 		{
 			//####### sortowanie babelkowe #########################
-			for(a = i - 1; a <= i + 1; a++)
+			for (a = i - 1; a <= i + 1; a++)
 				for (b = j - 1; b <= j + 1; b++)
 				{
 					tab_sortowania[c] = obraz[**aktywny].tab[a][b];
@@ -615,12 +616,12 @@ void filtr_medianowy(dane *obraz, int **aktywny)
 		for (j = 1; j < obraz[**aktywny].szerokosc - 2; j++)
 			obraz[**aktywny].tab[i][j] = tab[i][j];
 
-	for(i = 0; i < obraz[**aktywny].wysokosc; i++)
+	for (i = 0; i < obraz[**aktywny].wysokosc; i++)
 		free(tab[i]);
 	free(tab_sortowania);
 }
 
-void formatuj_obraz(dane *obraz, int *aktywny, int *ilosc)
+void formatuj_obraz(dane* obraz, int* aktywny, int* ilosc)
 {
 	int jakie_formatowanie, c;
 	if (*ilosc == 0)
@@ -633,7 +634,7 @@ void formatuj_obraz(dane *obraz, int *aktywny, int *ilosc)
 	//############### wybor formatowania i zabezpieczenie #############
 	printf("\nCo chcesz zrobic z obrazem?\n1 - odbicie wzgledem osi x\n2 - odbicie wzgledem osi y\n3 - obrot\n4 - histogram\n");
 	printf("5 - progowanie\n6 - negatyw\n7 - pieprz i sol\n8 - filtr Gaussa\n9 - filtr medianowy\n0 - wyjdz z formatowania\n");
-	
+
 	do
 	{
 		while (scanf("%d", &jakie_formatowanie) != 1)
@@ -678,7 +679,7 @@ void formatuj_obraz(dane *obraz, int *aktywny, int *ilosc)
 		break;
 	}
 	//##############################################################
-	
+
 	system("cls");
 }
 
@@ -686,11 +687,11 @@ int main()
 {
 	//############### zmienne podstawowe i alokacja struktury ######
 	int co_robic = 1, c, ilosc = 0, aktywny = 0, i, j;
-	dane *obraz;
+	dane* obraz;
 
 	srand(time(NULL));
 
-	obraz = malloc(1*sizeof(dane));
+	obraz = malloc(1 * sizeof(dane));
 	if (obraz == NULL)
 	{
 		printf("Nie moge przydzielic pamieci!");
@@ -707,9 +708,9 @@ int main()
 		{
 			printf("\n\nWczytane obrazy:\n");
 			wypisz_obrazy(obraz, &ilosc);
-			printf("\nAktywny obraz:	%d. %s  %dx%d\n\n", aktywny+1, obraz[aktywny].nazwa, obraz[aktywny].szerokosc, obraz[aktywny].wysokosc);
+			printf("\nAktywny obraz:	%d. %s  %dx%d\n\n", aktywny + 1, obraz[aktywny].nazwa, obraz[aktywny].szerokosc, obraz[aktywny].wysokosc);
 		}
-			
+
 		printf("Co chcesz zrobic?\n1 - dodaj obraz\n2 - usun obraz\n3 - formatuj aktywny obraz\n4 - zmien aktywny obraz\n5 - zapisz aktywny obraz\n0 - wyjdz z programu\n");
 		do
 		{
@@ -748,7 +749,7 @@ int main()
 					free(obraz);
 					exit(0);
 				}
-				
+
 			}
 			wczytaj_obraz(ilosc - 1, obraz);
 			system("cls");
@@ -761,8 +762,10 @@ int main()
 			{
 				ilosc--;
 				if (ilosc == 0)
+				{
 					free(obraz);													// poprawic free
-				aktywny = 0;
+					aktywny = 0;
+				}
 				else
 				{
 					obraz = realloc(obraz, ilosc * sizeof(dane));						// poprawic realokacje(najpierw free)
@@ -775,8 +778,8 @@ int main()
 					}
 					aktywny = aktywny - 1;
 				}
-				
-				
+
+
 			}
 
 			break;
@@ -789,6 +792,7 @@ int main()
 			zmien_obraz(obraz, &ilosc, &aktywny);
 			break;
 		case 5:
+			
 			zapisz_obraz(obraz, &aktywny, &ilosc);
 			break;
 		default:
