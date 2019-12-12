@@ -1,0 +1,812 @@
+#define _CRT_SECURE_NO_WARNINGS
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+typedef struct
+{
+	char nazwa[100];
+	char format[2];
+	int szerokosc;
+	int wysokosc;
+	int glebia_szarosci;
+	int **tab;
+}dane;
+
+void pomin_komentarze(FILE *PLIK)
+{
+	int c;
+	char line[100];
+	while ((c = fgetc(PLIK)) != EOF && isspace(c));		//zczytuje znaki. Funkcja zwraca kod odczytanego znaku, EOF w przypadku bledu. Upewnia się, czy znak jest alfabetyczny, a nie znak biały(spacja, \n)
+
+	if (c == '#')
+	{
+		fgets(line, sizeof(line), PLIK);	//wsadzamy wyraz do tablicy znakow line		fgets bierze az do znaku bialego
+		pomin_komentarze(PLIK);
+	}
+	else
+		fseek(PLIK, -1, SEEK_CUR);	//cofamy sie o 1
+}
+
+void wczytaj_obraz(int ilosc, dane *obraz)
+{
+	int i, j;
+	int k = 0;
+	FILE * PLIK;
+	printf("Podaj nazwe otwieranego pliku (nie zapomnij o .pgm):\n");
+	scanf("%s", obraz[ilosc].nazwa);
+	printf("Podales nazwe: %s\n", obraz[ilosc].nazwa);
+
+	if ((PLIK = fopen(obraz[ilosc].nazwa, "rb")) == NULL)
+	{
+		printf("Nie moge otworzyc pliku pgm!\n");
+		do
+		{
+			printf("Podaj nazwe otwieranego pliku:\n");
+			scanf("%s", obraz[ilosc].nazwa);
+			printf("Podales nazwe: %s\n", obraz[ilosc].nazwa);
+		} while ((PLIK = fopen(obraz[ilosc].nazwa, "rb")) == NULL);
+	}	
+	//############### wypelnienie struktury #####################
+	pomin_komentarze(PLIK);
+	fscanf(PLIK, "%s", obraz[ilosc].format);			//fscanf bierze do znaku bialego
+		//printf("obraz[ilosc].format: %s\n", obraz[ilosc].format);
+	//if(obraz[ilosc].format != 0)
+	pomin_komentarze(PLIK);
+	fscanf(PLIK, "%d", &obraz[ilosc].szerokosc);
+	pomin_komentarze(PLIK);
+	fscanf(PLIK, "%d", &obraz[ilosc].wysokosc);
+	pomin_komentarze(PLIK);
+	fscanf(PLIK, "%d", &obraz[ilosc].glebia_szarosci);
+	fgetc(PLIK);		//
+	//###########################################################
+
+	//############### wypelnienie tablicy #######################
+	obraz[ilosc].tab = malloc(obraz[ilosc].wysokosc * sizeof(*obraz[ilosc].tab));
+	if (obraz[ilosc].tab != NULL)
+	{
+		for (i = 0; i < obraz[ilosc].wysokosc; i++)
+		{
+			obraz[ilosc].tab[i] = malloc(obraz[ilosc].szerokosc * sizeof(obraz[ilosc].tab));
+			if (obraz[ilosc].tab[i] == NULL)	//jak cos sie zepsuje
+			{
+				for (j = 0; j < i; j++)
+					free(obraz[ilosc].tab[j]);
+				free(obraz[ilosc].tab);
+				exit(0);
+			}
+		}
+	}
+	else {
+		(printf("blad!\n"));
+		k = 1;
+	}
+	if (k == 0) {
+		for (i = 0; i < obraz[ilosc].wysokosc; i++)
+		{
+			for (j = 0; j < obraz[ilosc].szerokosc; j++)
+			{
+				fscanf(PLIK, "%d", &obraz[ilosc].tab[i][j]);
+			}
+			pomin_komentarze(PLIK);
+		}
+	}
+	k = 0;
+	//###########################################################
+	fclose(PLIK);
+
+}
+
+void usun_obraz(dane *obraz, int *ilosc, int* aktywny)
+{
+	int i, wybor, c;
+	if (*ilosc == 0)
+	{
+		printf("Brak obrazow\n");
+		system("PAUSE");
+		system("cls");
+		return;
+	}
+
+	if (*ilosc != 1)
+	{
+		printf("\nWybierz obraz ktory chcesz usunac:\n");
+		do
+		{
+			while (scanf("%d", &wybor) != 1)
+				while ((c = getchar()) != '\n' && c != EOF);
+
+			if (wybor <= 0 || wybor > *ilosc)
+				printf("Wybierz odpowiednia liczbe!!!\n");
+		} while (wybor <= 0 || wybor > *ilosc);
+
+		free(obraz[wybor-1].tab);						//poprawic zwalnianie pamieci
+		for (i = wybor - 1; i<*ilosc - 1; i++)
+			obraz[i] = obraz[i + 1];
+
+
+	}
+
+
+	system("cls");
+}
+
+void zapisz_obraz(dane *obraz, int *aktywny, int *ilosc)
+{
+	int i, j, c, jak_zapisac;
+	FILE *PLIK;
+	char txt[100];
+	if (*ilosc == 0)
+	{
+		printf("Brak obrazow\n");
+		system("PAUSE");
+		system("cls");
+		return;
+	}
+	printf("Pod jaka nazwa chcesz zapisac plik?\n1 - ta sama nazwa\n2 - inna nazwa\n");
+	do
+	{
+		while (scanf("%d", &jak_zapisac) != 1)
+			while ((c = getchar()) != '\n' && c != EOF);
+
+		if (jak_zapisac <= 0 || jak_zapisac > 2)
+			printf("Wybierz odpowiednia liczbe!!!\n");
+	} while (jak_zapisac <= 0 || jak_zapisac > 2);
+
+
+	if (jak_zapisac == 1)
+	{
+		if ((PLIK = fopen(obraz[*aktywny].nazwa, "w")) == NULL)
+		{
+			printf("Nie moge otworzyc pliku do zapisu!\n");									
+			system("PAUSE");
+			exit(0);
+		}
+	}
+	else
+	{
+		printf("Podaj nazwe pod jaka chcesz zapisac plik(nie zapomnij o .pgm):\n");
+		scanf("%s", txt);
+		printf("Podales nazwe: %s\n", txt);
+
+		if ((PLIK = fopen(txt, "w")) == NULL)
+		{
+			printf("Nie moge otworzyc pliku pgm!\n");
+			do
+			{
+				printf("Podaj nazwe otwieranego pliku:\n");
+				scanf("%s", txt);
+				printf("Podales nazwe: %s\n", txt);
+			} while ((PLIK = fopen(txt, "w")) == NULL);
+		}
+	}
+
+	fprintf(PLIK, "%s\n%d %d\n%d\n", obraz[*aktywny].format, obraz[*aktywny].szerokosc, obraz[*aktywny].wysokosc, obraz[*aktywny].glebia_szarosci);
+	for (i = 0; i < obraz[*aktywny].wysokosc; i++)
+	{
+		for (j = 0; j < obraz[*aktywny].szerokosc; j++)
+			fprintf(PLIK, "%d ", obraz[*aktywny].tab[i][j]);
+		fprintf(PLIK, "\n");
+	}
+	fclose(PLIK);
+	printf("\nZapisano!\n");
+}
+
+void zmien_obraz(dane *obraz, int *ilosc, int *aktywny)
+{
+	int i, c;
+	if (*ilosc == 0)
+	{
+		printf("Brak obrazow\n");
+		system("PAUSE");
+		system("cls");
+		return;
+	}
+	printf("Wybierz aktywny obraz:\n");
+	do
+	{
+		while (scanf("%d", &*aktywny) != 1)
+			while ((c = getchar()) != '\n' && c != EOF);
+
+		if (*aktywny <= 0 || *aktywny > *ilosc)
+			printf("Wybierz odpowiednia liczbe!!!\n");
+	} while (*aktywny <= 0 || *aktywny > *ilosc);
+	--*aktywny;
+	system("cls");
+}
+
+void wypisz_obrazy(dane *obraz, int *ilosc)
+{
+	int i;
+	for (i = 0; i < *ilosc; i++)
+		printf("\n%d. %s  %dx%d\n", i + 1, obraz[i].nazwa, obraz[i].szerokosc, obraz[i].wysokosc);
+}
+
+void odbicie_xy(dane *obraz, int **aktywny, int *jakie_formatowanie)
+{
+	int **tab, i, j;
+	tab = malloc(obraz[**aktywny].wysokosc * sizeof(*tab));
+	if (tab != NULL)
+	{
+		for (i = 0; i < obraz[**aktywny].wysokosc; i++)
+		{
+			tab[i] = malloc(obraz[**aktywny].szerokosc * sizeof(tab));			//tworzymy tablice pomocnicza
+			if (tab[i] == NULL)
+			{
+				for(j = 0; j < i; j++)
+					free(tab[j]);
+				free(tab);
+				exit(0);
+			}
+		}
+	}
+
+	if (*jakie_formatowanie == 1)
+	{
+		for (i = 0; i < obraz[**aktywny].wysokosc; i++)
+			for (j = 0; j < obraz[**aktywny].szerokosc; j++)
+				tab[i][j] = obraz[**aktywny].tab[obraz[**aktywny].wysokosc - 1 - i][j];	//	obraz[wysokosc-1-i][j]
+
+		for (i = 0; i < obraz[**aktywny].wysokosc; i++)
+			for (j = 0; j < obraz[**aktywny].szerokosc; j++)
+				obraz[**aktywny].tab[i][j] = tab[i][j];
+	}
+	else
+	{
+		for (i = 0; i < obraz[**aktywny].wysokosc; i++)
+			for (j = 0; j < obraz[**aktywny].szerokosc; j++)
+				tab[i][j] = obraz[**aktywny].tab[i][obraz[**aktywny].szerokosc - 1 - j];
+
+		for (i = 0; i < obraz[**aktywny].wysokosc; i++)
+			for (j = 0; j < obraz[**aktywny].szerokosc; j++)
+				obraz[**aktywny].tab[i][j] = tab[i][j];
+	}
+
+	for(i = 0; i < obraz[**aktywny].wysokosc; i++)
+		free(tab[i]);
+	free(tab);
+}
+
+void obrot(dane *obraz, int **aktywny)
+{
+	int **tab, i, j, k, ile_razy, c, x;
+
+	printf("O ile stopni chcesz obrocic obraz w lewo?\n1 - 90\n2 - 180\n3 - 270\n");
+	do
+	{
+		while (scanf("%d", &ile_razy) != 1)
+			while ((c = getchar()) != '\n' && c != EOF);
+
+		if (ile_razy <= 0 || ile_razy > 3)
+			printf("Wybierz odpowiednia liczbe!!!\n");
+	} while (ile_razy <= 0 || ile_razy > 3);
+
+	for (k = 0; k < ile_razy; k++)		//poczatek obracania
+	{
+		//########### tablica dynamiczna ###########################
+		tab = malloc(obraz[**aktywny].szerokosc * sizeof(*tab));
+		if (tab != NULL)
+		{
+			for (i = 0; i < obraz[**aktywny].szerokosc; i++)
+			{
+				tab[i] = malloc(obraz[**aktywny].wysokosc * sizeof(tab));		//stworzenie obroconej, nowej tablicy pomocniczej
+				if (tab[i] == NULL)
+				{
+					for (j = 0; j < i; j++)
+						free(tab[j]);
+					free(tab);
+					exit(0);
+				}
+			}
+		}
+		//##########################################################
+
+		//########### zapisanie do tablicy pomocniczej #############
+		for (i = 0; i < obraz[**aktywny].wysokosc; i++)									// wrzucamy wartosci do obroconej tablicy 
+			for (j = 0; j < obraz[**aktywny].szerokosc; j++)
+				tab[j][obraz[**aktywny].wysokosc - 1 - i] = obraz[**aktywny].tab[i][j];
+		//##########################################################
+
+		for (i = 0; i < obraz[**aktywny].wysokosc; i++)		// czyscimy tablice aktywną, zeby miec potem nową aktywną POPRAWIC, BO NIE CZYSCI WSZYSTKIEGO [i][j]
+			free(obraz[**aktywny].tab[i]);
+		free(obraz[**aktywny].tab);
+		
+		//########### zmiana wymiarow tablicy obrazu ###############
+		x = obraz[**aktywny].wysokosc;
+		obraz[**aktywny].wysokosc = obraz[**aktywny].szerokosc;			// zmieniamy nazwy, bo szerokosc staje sie wysokoscia
+		obraz[**aktywny].szerokosc = x;
+
+		obraz[**aktywny].tab = malloc(obraz[**aktywny].wysokosc * sizeof(*obraz[**aktywny].tab));
+		if (obraz[**aktywny].tab != NULL)
+		{
+			for (i = 0; i < obraz[**aktywny].wysokosc; i++)
+			{
+				obraz[**aktywny].tab[i] = malloc(obraz[**aktywny].szerokosc * sizeof(obraz[**aktywny].tab));			
+				if (obraz[**aktywny].tab[i] == NULL)
+				{
+					for(j = 0; j < i; j++)
+						free(obraz[**aktywny].tab[j]);		//zabezpieczenie
+					free(obraz[**aktywny].tab);
+					exit(0);
+				}
+			}
+		}
+		//##########################################################
+
+		//########### przepisanie tablicy pomocniczej do obrazu ####
+		for (i = 0; i < obraz[**aktywny].wysokosc; i++)
+			for (j = 0; j < obraz[**aktywny].szerokosc; j++)
+				obraz[**aktywny].tab[i][j] = tab[i][j];
+		//##########################################################
+		
+		for(i = 0; i < obraz[**aktywny].wysokosc; i++)		//prawilne czyszczenie
+			free(tab[i]);
+		free(tab);
+	}
+}
+
+void histogram(dane *obraz, int **aktywny)
+{
+	int	i, j, k, **tab;
+	//############### tablica dynamiczna ###########################
+	tab = (int*)malloc((obraz[**aktywny].glebia_szarosci + 1) * sizeof(*tab));
+	if (tab != NULL)
+	{
+		for (i = 0; i < (obraz[**aktywny].glebia_szarosci + 1); i++)
+		{
+			tab[i] = (int*)malloc(2 * sizeof(tab));
+			if (tab[i] == NULL)
+			{
+				for (j = 0; j < i; j++)
+					free(tab[j]);
+				free(tab);
+				exit(0);
+			}
+		}
+	}
+	//##############################################################
+	for (k = 0; k <= obraz[**aktywny].glebia_szarosci; k++)					//wstawiamy zera do [k][1]
+		tab[k][1] = 0;
+	
+	for (i = 0; i < obraz[**aktywny].wysokosc; i++)
+		for (j = 0; j < obraz[**aktywny].szerokosc; j++)
+			for (k = 0; k <= obraz[**aktywny].glebia_szarosci; k++)
+				if (obraz[**aktywny].tab[i][j] == k)						//szukamy ile mamy np. liczb o wartosci 115. Jak znajdzie, to +1 do tablicy [k][1], czyli dla tego przypadku [115][1]= +1
+					tab[k][1]++;
+			
+			
+
+	//############### zapis pliku .csv #############################
+	FILE* PLIK;
+	if ((PLIK = fopen("histogram.csv", "w")) == NULL)
+	{
+		printf("Nie moge otworzyc pliku PLIK.csv do zapisu!\n");
+		system("PAUSE");
+		exit(0);
+	}
+
+	fprintf(PLIK, "Skala; Ilosc;\n");
+
+	for (i = 0; i <= obraz[**aktywny].glebia_szarosci; i++)
+	{
+		fprintf(PLIK, "%d; %d;\n", i, tab[i][1]);
+	}
+	fclose(PLIK);
+	printf("Plik zostal zapisany pomyslnie!\n");
+	//##############################################################
+	for (i = 0; i < obraz[**aktywny].glebia_szarosci; i++)					//legitne delete
+		free(tab[i]);
+	free(tab);
+}
+
+void progowanie(dane *obraz, int **aktywny)
+{
+	int prog, c, i, j;
+	printf("Glebia szarosci: %d\n", obraz[**aktywny].glebia_szarosci);
+	printf("Podaj prog(im wyzszy prog, tym wiecej czarnego):\n");
+	do
+	{
+		while (scanf("%d", &prog) != 1)
+			while ((c = getchar()) != '\n' && c != EOF);
+
+		if (prog <= 0 || prog >= obraz[**aktywny].glebia_szarosci)		//zabezpieczenia
+			printf("Wybierz odpowiednia liczbe!!!\n");
+	} while (prog <= 0 || prog >= obraz[**aktywny].glebia_szarosci);
+
+	for (i = 0; i < obraz[**aktywny].wysokosc; i++)
+		for (j = 0; j < obraz[**aktywny].szerokosc; j++)
+		{
+			if (obraz[**aktywny].tab[i][j] >= prog)
+				obraz[**aktywny].tab[i][j] = obraz[**aktywny].glebia_szarosci;	//zrob biale
+			else
+				obraz[**aktywny].tab[i][j] = 0;		//zrob czarne
+		}
+}
+
+void negatyw(dane *obraz, int **aktywny)
+{
+	int i, j;
+	for (i = 0; i < obraz[**aktywny].wysokosc; i++)
+		for (j = 0; j < obraz[**aktywny].szerokosc; j++)
+			obraz[**aktywny].tab[i][j] = obraz[**aktywny].glebia_szarosci - obraz[**aktywny].tab[i][j];
+}
+
+void pieprz_sol(dane *obraz, int **aktywny)
+{
+	int i, j, ile_pikseli, BczyW, c, ile, **ktore;
+
+	//############### wybor ilosci zaszumionych pikseli ############
+	printf("Czy procent szumow ma byc wiekszy niz polowa?\nTAK - 1\nNIE - 0\n");
+	do
+	{
+		while (scanf("%d", &ile) != 1)
+			while ((c = getchar()) != '\n' && c != EOF);
+
+		if (ile < 0 || ile > 1)
+			printf("Wybierz odpowiednia liczbe!!!\n");
+	} while (ile < 0 || ile > 1);
+	//##############################################################
+
+	//############### dynamiczna tablica pomocnicza ################
+	ktore = malloc(obraz[**aktywny].wysokosc * sizeof(*ktore));
+	if (ktore != NULL)
+	{
+		for (i = 0; i < obraz[**aktywny].wysokosc; i++)
+		{
+			ktore[i] = malloc(obraz[**aktywny].szerokosc * sizeof(ktore));
+			if (ktore[i] == NULL)
+			{
+				free(ktore);
+				exit(0);
+			}
+		}
+	}
+	//##############################################################
+
+	//############### losowanie ilosci pikseli #####################
+	if (ile)		//if ile != 0 zrob petle
+	{
+		do						// robimy jak chcemy ponad polowe
+		{
+			for (i = 0; i < obraz[**aktywny].wysokosc; i++)
+				for (j = 0; j < obraz[**aktywny].szerokosc; j++)		
+					ktore[i][j] = 0;
+			ile_pikseli = 0;
+			for (i = 0; i < obraz[**aktywny].wysokosc; i++)
+				for (j = 0; j < obraz[**aktywny].szerokosc; j++)
+				{
+					c = rand();
+					c = (c % 2);	//wartosci od 0 do 1 
+					ktore[i][j] = c;
+					if (c == 1)
+						ile_pikseli++;
+				}
+		} while (ile_pikseli <= obraz[**aktywny].wysokosc * obraz[**aktywny].szerokosc / 2);		//sprawdzamy czy jest wiecej niz na polowie pixeli 
+	}
+	else
+	{
+		do
+		{
+			for (i = 0; i < obraz[**aktywny].wysokosc; i++)
+				for (j = 0; j < obraz[**aktywny].szerokosc; j++)
+					ktore[i][j] = 0;
+			ile_pikseli = 0;
+			for (i = 0; i < obraz[**aktywny].wysokosc; i++)
+				for (j = 0; j < obraz[**aktywny].szerokosc; j++)
+				{
+					c = rand();
+					c = (c % 2);
+					ktore[i][j] = c;
+					if (c == 1)
+						ile_pikseli++;
+				}
+		} while (ile_pikseli >= obraz[**aktywny].wysokosc * obraz[**aktywny].szerokosc / 2);
+	}
+
+	for (i = 0; i < obraz[**aktywny].wysokosc; i++)
+		for (j = 0; j < obraz[**aktywny].szerokosc; j++)
+			if (ktore[i][j] == 1)
+			{
+				BczyW = rand();
+				BczyW = (BczyW % 2);
+				if (BczyW)			// (BczyW) != 0
+					obraz[**aktywny].tab[i][j] = obraz[**aktywny].glebia_szarosci;
+				else
+					obraz[**aktywny].tab[i][j] = 0;
+		}
+	//##############################################################
+
+	free(ktore);													//poprawic
+}
+
+void filtr_gaussa(dane *obraz, int **aktywny)
+{
+	int i, j, **tab;
+	//############### tablica dynamiczna ###########################
+	tab = malloc((obraz[**aktywny].wysokosc) * sizeof(*tab));
+	if (tab != NULL)
+	{
+		for (i = 0; i < (obraz[**aktywny].wysokosc); i++)
+		{
+			tab[i] = malloc((obraz[**aktywny].szerokosc) * sizeof(tab));
+			if (tab[i] == NULL)
+			{
+				for(j = 0; j < i; j++)
+					free(tab[j]);
+				free(tab);
+				exit(0);
+			}
+		}
+	}
+	//##############################################################
+
+	for (i = 1; i < obraz[**aktywny].wysokosc - 2; i++)
+		for (j = 1; j < obraz[**aktywny].szerokosc - 2; j++)
+			tab[i][j] = (obraz[**aktywny].tab[i - 1][j - 1] + obraz[**aktywny].tab[i - 1][j] * 2 + obraz[**aktywny].tab[i - 1][j + 1] + obraz[**aktywny].tab[i][j - 1] * 2 + obraz[**aktywny].tab[i][j] * 4 + obraz[**aktywny].tab[i][j + 1] * 2 + obraz[**aktywny].tab[i + 1][j - 1] + obraz[**aktywny].tab[i + 1][j] * 2 + obraz[**aktywny].tab[i + 1][j + 1]) / 16;
+
+	for (i = 1; i < obraz[**aktywny].wysokosc - 2; i++)
+		for (j = 1; j < obraz[**aktywny].szerokosc - 2; j++)
+			obraz[**aktywny].tab[i][j] = tab[i][j];
+
+	for(i = 0; i < obraz[**aktywny].wysokosc; i++)
+		free(tab[i]);
+	free(tab);					
+}
+
+void filtr_medianowy(dane *obraz, int **aktywny)
+{
+	int i, j, **tab, *tab_sortowania, a, b, c = 0;
+
+	//############### tablice dynamiczne ###########################
+	tab_sortowania = (int*)malloc(9 * sizeof(int));
+	if (tab_sortowania == NULL)
+	{
+		printf("Nie moge przydzielic wartosci!");
+		system("PAUSE");
+		exit(0);
+	}
+
+	tab = malloc((obraz[**aktywny].wysokosc) * sizeof(*tab));
+	if (tab != NULL)
+	{
+		for (i = 0; i < (obraz[**aktywny].wysokosc); i++)
+		{
+			tab[i] = malloc((obraz[**aktywny].szerokosc) * sizeof(tab));
+			if (tab[i] == NULL)
+			{
+				for(j = 0; j < i; j++)
+					free(tab[j]);
+				free(tab);
+				exit(0);
+			}
+		}
+	}
+	//##############################################################
+
+	for (i = 1; i < obraz[**aktywny].wysokosc - 2; i++)
+		for (j = 1; j < obraz[**aktywny].szerokosc - 2; j++)
+		{
+			//####### sortowanie babelkowe #########################
+			for(a = i - 1; a <= i + 1; a++)
+				for (b = j - 1; b <= j + 1; b++)
+				{
+					tab_sortowania[c] = obraz[**aktywny].tab[a][b];
+					c++;
+				}
+			do
+			{
+				c = 0;
+				for (a = 0; a < 8; a++)
+					if (tab_sortowania[a] > tab_sortowania[a + 1])
+					{
+						c++;
+						b = tab_sortowania[a];
+						tab_sortowania[a] = tab_sortowania[a + 1];
+						tab_sortowania[a + 1] = b;
+					}
+			} while (c != 0);
+			//######################################################
+
+			tab[i][j] = tab_sortowania[4];
+		}
+
+	for (i = 1; i < obraz[**aktywny].wysokosc - 2; i++)
+		for (j = 1; j < obraz[**aktywny].szerokosc - 2; j++)
+			obraz[**aktywny].tab[i][j] = tab[i][j];
+
+	for(i = 0; i < obraz[**aktywny].wysokosc; i++)
+		free(tab[i]);
+	free(tab_sortowania);
+}
+
+void formatuj_obraz(dane *obraz, int *aktywny, int *ilosc)
+{
+	int jakie_formatowanie, c;
+	if (*ilosc == 0)
+	{
+		printf("Brak obrazow\n");
+		system("PAUSE");
+		system("cls");
+		return;
+	}
+	//############### wybor formatowania i zabezpieczenie #############
+	printf("\nCo chcesz zrobic z obrazem?\n1 - odbicie wzgledem osi x\n2 - odbicie wzgledem osi y\n3 - obrot\n4 - histogram\n");
+	printf("5 - progowanie\n6 - negatyw\n7 - pieprz i sol\n8 - filtr Gaussa\n9 - filtr medianowy\n0 - wyjdz z formatowania\n");
+	
+	do
+	{
+		while (scanf("%d", &jakie_formatowanie) != 1)
+			while ((c = getchar()) != '\n' && c != EOF);
+
+		if (jakie_formatowanie < 0 || jakie_formatowanie > 9)
+			printf("Wybierz odpowiednia liczbe!!!\n");
+	} while (jakie_formatowanie < 0 || jakie_formatowanie > 9);
+	//##############################################################
+
+	system("cls");
+
+	//############### funkcje formatowania obrazu ##################
+	switch (jakie_formatowanie)
+	{
+	case 1:
+		odbicie_xy(obraz, &aktywny, &jakie_formatowanie);
+		break;
+	case 2:
+		odbicie_xy(obraz, &aktywny, &jakie_formatowanie);
+		break;
+	case 3:
+		obrot(obraz, &aktywny);
+		break;
+	case 4:
+		histogram(obraz, &aktywny);
+		break;
+	case 5:
+		progowanie(obraz, &aktywny);
+		break;
+	case 6:
+		negatyw(obraz, &aktywny);
+		break;
+	case 7:
+		pieprz_sol(obraz, &aktywny);
+		break;
+	case 8:
+		filtr_gaussa(obraz, &aktywny);
+		break;
+	case 9:
+		filtr_medianowy(obraz, &aktywny);
+		break;
+	}
+	//##############################################################
+	
+	system("cls");
+}
+
+int main()
+{
+	//############### zmienne podstawowe i alokacja struktury ######
+	int co_robic = 1, c, ilosc = 0, aktywny = 0, i, j;
+	dane *obraz;
+
+	srand(time(NULL));
+
+	obraz = malloc(1*sizeof(dane));
+	if (obraz == NULL)
+	{
+		printf("Nie moge przydzielic pamieci!");
+		system("PAUSE");
+		exit(0);
+	}
+	//##############################################################
+
+	//############### menu uzytkownika #############################
+	while (co_robic != 0)
+	{
+		//########### funkcje programu i zabezpieczenie ############
+		if (ilosc != 0)
+		{
+			printf("\n\nWczytane obrazy:\n");
+			wypisz_obrazy(obraz, &ilosc);
+			printf("\nAktywny obraz:	%d. %s  %dx%d\n\n", aktywny+1, obraz[aktywny].nazwa, obraz[aktywny].szerokosc, obraz[aktywny].wysokosc);
+		}
+			
+		printf("Co chcesz zrobic?\n1 - dodaj obraz\n2 - usun obraz\n3 - formatuj aktywny obraz\n4 - zmien aktywny obraz\n5 - zapisz aktywny obraz\n0 - wyjdz z programu\n");
+		do
+		{
+			while (scanf("%d", &co_robic) != 1)
+				while ((c = getchar()) != '\n' && c != EOF);
+
+			if (co_robic < 0 || co_robic > 5)
+				printf("Wybierz odpowiednia liczbe!!!\n");
+		} while (co_robic < 0 || co_robic > 5);
+		//################################################################
+
+
+		//########### funkcje podstawowe programu ########################
+		switch (co_robic)
+		{
+		case 1:
+			if (ilosc == 0)
+			{
+				obraz = malloc(1 * sizeof(dane));
+				if (obraz == NULL)
+				{
+					printf("Nie moge przydzielic pamieci!");
+					system("PAUSE");
+					exit(0);
+				}
+				ilosc++;
+			}
+			else
+			{
+				ilosc++;
+				obraz = realloc(obraz, (ilosc + 1) * sizeof(dane));
+				if (obraz == NULL)
+				{
+					printf("Nie mozna przydzielic pamieci:\n");
+					system("PAUSE");
+					free(obraz);
+					exit(0);
+				}
+				
+			}
+			wczytaj_obraz(ilosc - 1, obraz);
+			system("cls");
+			break;
+		case 2:
+			wypisz_obrazy(obraz, &ilosc);
+			usun_obraz(obraz, &ilosc, &aktywny);
+
+			if (ilosc != 0)
+			{
+				ilosc--;
+				if (ilosc == 0)
+					free(obraz);													// poprawic free
+				aktywny = 0;
+				else
+				{
+					obraz = realloc(obraz, ilosc * sizeof(dane));						// poprawic realokacje(najpierw free)
+					if (obraz == NULL)
+					{
+						printf("Nie mozna przydzielic pamieci:\n");
+						system("PAUSE");
+						free(obraz);
+						exit(0);
+					}
+					aktywny = aktywny - 1;
+				}
+				
+				
+			}
+
+			break;
+
+		case 3:
+			formatuj_obraz(obraz, &aktywny, &ilosc);
+			break;
+		case 4:
+			wypisz_obrazy(obraz, &ilosc);
+			zmien_obraz(obraz, &ilosc, &aktywny);
+			break;
+		case 5:
+			zapisz_obraz(obraz, &aktywny, &ilosc);
+			break;
+		default:
+			printf("Koniec programu\n");
+		}
+		//##########################################################
+	}
+	//##############################################################
+
+	//############### zwolnienie pamieci ###########################
+	for (i = 0; i < ilosc; i++)
+	{
+		for (j = 0; j < ilosc; j++)
+			free(obraz[i].tab[j]);
+		free(obraz[i].tab);
+	}
+	free(obraz);
+	//##############################################################
+	system("PAUSE");
+	return 0;
+}
